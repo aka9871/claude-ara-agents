@@ -1,0 +1,63 @@
+{
+  "$ara": "1.0",
+  "$schema": "https://ara-standard.org/schema/manifest/v1",
+  "identity": {
+    "name": "SaaSFlow",
+    "type": "saas",
+    "description": "Project management SaaS platform. 12,000 active teams. 3 plans: Free (up to 3 projects), Pro ($12/user/mo), Enterprise (custom). REST + MCP + A2A protocols.",
+    "sector": "productivity_software",
+    "locale": ["en-US"]
+  },
+  "content_map": {
+    "summary": "Project management SaaS with projects, tasks, and tiered pricing for 12,000+ active teams",
+    "resources": [
+      {
+        "id": "projects",
+        "type": "catalog",
+        "label": "Projects",
+        "description": "Team workspaces with tasks, members, and timelines",
+        "access": "authenticated",
+        "freshness": "realtime",
+        "schema_ref": "schemas/project.json"
+      },
+      {
+        "id": "tasks",
+        "type": "catalog",
+        "label": "Tasks",
+        "description": "Work items within projects — assignable, with due dates, priorities, and comments",
+        "access": "authenticated",
+        "freshness": "realtime",
+        "schema_ref": "schemas/task.json"
+      },
+      {
+        "id": "pricing",
+        "type": "service_list",
+        "label": "Pricing Plans",
+        "description": "3 plans: Free, Pro ($12/user/mo), Enterprise (custom pricing)",
+        "count": 3,
+        "access": "public",
+        "freshness": "monthly",
+        "schema_ref": "schemas/plan.json"
+      }
+    ]
+  },
+  "capabilities": {
+    "protocols": { "rest_api": true, "mcp": true, "a2a": true },
+    "actions_ref": "actions.json"
+  },
+  "policies": {
+    "agent_access": "public",
+    "rate_limit": { "requests_per_minute": 120 },
+    "data_usage": {
+      "caching_allowed": true,
+      "cache_ttl_seconds": 60,
+      "redistribution": "not_allowed"
+    }
+  },
+  "meta": {
+    "generated_at": "2026-04-16T00:00:00Z",
+    "generator": "ara-transformer/1.0",
+    "human_site": true,
+    "specification_version": "1.0"
+  }
+}

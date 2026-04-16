@@ -1,0 +1,68 @@
+{
+  "$ara": "1.0",
+  "$schema": "https://ara-standard.org/schema/manifest/v1",
+  "identity": {
+    "name": "UrbanStyle",
+    "type": "ecommerce",
+    "description": "Premium online fashion boutique. 3,200+ products across 8 categories. Ships to 45 countries. Founded 2019.",
+    "sector": "fashion_retail",
+    "locale": ["en-US", "fr-FR"],
+    "contact": {
+      "email": "support@urbanstyle.fashion",
+      "address": "123 Fashion Avenue, New York, NY 10001"
+    }
+  },
+  "content_map": {
+    "summary": "Fashion ecommerce with 3,200 products, 8 categories, customer reviews, and seasonal collections",
+    "resources": [
+      {
+        "id": "products",
+        "type": "catalog",
+        "label": "Products",
+        "description": "Clothing, footwear, and accessories. 3,200 SKUs across 8 categories.",
+        "count": 3200,
+        "access": "public",
+        "freshness": "daily",
+        "schema_ref": "schemas/product.json"
+      },
+      {
+        "id": "collections",
+        "type": "catalog",
+        "label": "Seasonal Collections",
+        "description": "Themed collections updated quarterly. Current: Spring 2026.",
+        "count": 12,
+        "access": "public",
+        "freshness": "monthly",
+        "schema_ref": "schemas/collection.json"
+      },
+      {
+        "id": "reviews",
+        "type": "content",
+        "label": "Customer Reviews",
+        "count": 48000,
+        "access": "public",
+        "freshness": "realtime",
+        "schema_ref": "schemas/review.json"
+      }
+    ]
+  },
+  "capabilities": {
+    "protocols": { "rest_api": true, "mcp": true },
+    "actions_ref": "actions.json"
+  },
+  "policies": {
+    "agent_access": "public",
+    "rate_limit": { "requests_per_minute": 60 },
+    "data_usage": {
+      "caching_allowed": true,
+      "cache_ttl_seconds": 300,
+      "redistribution": "not_allowed"
+    }
+  },
+  "meta": {
+    "generated_at": "2026-04-16T00:00:00Z",
+    "generator": "ara-transformer/1.0",
+    "human_site": true,
+    "specification_version": "1.0"
+  }
+}
