@@ -2,13 +2,50 @@
 
 > Make any website understandable by AI agents — in minutes, with Claude Code.
 
-This repository provides two Claude Code agents and a `/ara` skill that implement the **ARA (Agent-Ready Architecture)** standard for any website.
-
-**One command. Three files generated. Any site becomes agent-ready.**
+This repository provides **three Claude Code agents** and a `/ara` skill that implement the **ARA (Agent-Ready Architecture)** standard for any website.
 
 ```bash
-/ara transform https://yoursite.com
+/ara transform https://yoursite.com   # Generate ARA files
+/ara enforce https://yoursite.com     # Force AI bots to use ARA
 ```
+
+---
+
+## The Problem Nobody Is Talking About
+
+ChatGPT, Perplexity, Gemini, and Claude visit your website every day.
+
+They parse **50,000+ tokens of raw HTML** to understand what your site does — your products, your services, your prices. They don't read your `llms.txt`. They don't know ARA exists. They just scrape.
+
+This costs AI companies millions in compute. It means they index your site slowly, inaccurately, and expensively. And you have no control over what they find.
+
+**ARA changes the equation — but only if you force it.**
+
+The `ara-enforcer` agent detects your tech stack and injects signals at 4 layers of your server so that known AI bots receive structured ARA content **proactively** — without needing to know ARA exists.
+
+```
+Before ARA enforcement:
+  GPTBot → fetches 4 pages → parses 100,000 tokens → understands 60% of your site
+
+After ARA enforcement:
+  GPTBot → hits your homepage → server detects User-Agent → 302 redirect
+         → reads digest.md (300 tokens) → understands 100% of your site
+```
+
+**300x fewer tokens. 1 HTTP request. Complete, structured context.**
+
+This is not just technical optimization. It's the mechanism by which ARA becomes a standard:
+when enough sites redirect AI bots to structured ARA content, every major LLM company has a direct financial incentive to adopt ARA natively. You create the adoption pressure.
+
+---
+
+## The Three Agents
+
+| Agent | What it does | When to use |
+|-------|-------------|-------------|
+| `ara-auditor` | Scores ARA compliance A-F, detects llms.txt | Before transforming |
+| `ara-transformer` | Generates manifest.json, schemas/, actions.json, digest.md | Making a site ARA-ready |
+| `ara-enforcer` | Injects signals that force AI bots to use ARA | After ARA files exist |
 
 ---
 
@@ -273,6 +310,7 @@ Regenerates `digest.md` and adds Schema.org `semantic` annotations to all schema
 |---------|-------------|--------|
 | `/ara audit <url>` | Full compliance report, A-F score | ara-auditor |
 | `/ara transform <url>` | Generate all ARA files | ara-auditor → ara-transformer |
+| `/ara enforce <url>` | Inject signals that force AI bots to use ARA | ara-enforcer |
 | `/ara migrate <url>` | Convert llms.txt → ARA | ara-auditor → ara-transformer |
 | `/ara validate <url>` | Run npx ara-validate | Bash |
 | `/ara geo <url>` | Optimize digest.md + Schema.org | ara-transformer |
@@ -282,32 +320,119 @@ All commands also work on local paths:
 
 ```bash
 /ara transform ./my-project
+/ara enforce ./my-project
 /ara audit ./my-project/.well-known/ara
 ```
 
 ---
 
+## Forcing AI Agents to Use ARA (the key to GEO)
+
+Generating ARA files is step one. Step two is making sure AI agents actually use them.
+
+The `ara-enforcer` agent implements **4 signal layers** in your server:
+
+### Layer 1 — HTTP headers (every response)
+```
+Link: </.well-known/ara/manifest.json>; rel="ara-manifest"
+X-ARA-Manifest: /.well-known/ara/manifest.json
+X-ARA-Version: 1.0
+```
+Agents that check response headers find the manifest without knowing ARA.
+
+### Layer 2 — HTML `<head>` hints
+```html
+<link rel="ara-manifest" href="/.well-known/ara/manifest.json">
+<meta name="ara:digest" content="/.well-known/ara/digest.md">
+```
+Agents that parse HTML find the reference before reading any page content.
+
+### Layer 3 — JSON-LD `potentialAction`
+```json
+{
+  "@type": "WebSite",
+  "potentialAction": {
+    "@type": "ReadAction",
+    "target": "/.well-known/ara/manifest.json",
+    "additionalType": "https://ara-standard.org/schema/manifest/v1"
+  }
+}
+```
+Agents that extract Schema.org data find the ARA manifest embedded in structured data they already process.
+
+### Layer 4 — Content negotiation (the most powerful)
+When a known AI bot visits, the server **redirects to `digest.md` before the bot parses any HTML**:
+
+```
+User-Agent: GPTBot/1.0  →  302  →  /.well-known/ara/digest.md
+```
+
+The bot reads 300 tokens of structured context instead of 50,000 tokens of HTML. **It doesn't need to know ARA exists.**
+
+AI bots detected and redirected:
+`GPTBot` · `ClaudeBot` · `PerplexityBot` · `Google-Extended` · `anthropic-ai` · `ChatGPT-User` · `Bytespider` · `YouBot` · `FacebookBot` · `Applebot` · `cohere-ai` · `AI2Bot`
+
+### Supported stacks
+
+```bash
+/ara enforce ./my-nextjs-app     → generates middleware.ts
+/ara enforce ./my-wp-site        → generates WordPress plugin + functions.php additions
+/ara enforce ./nginx-config      → generates nginx include block
+/ara enforce ./apache-site       → generates .htaccess additions
+/ara enforce ./cloudflare        → generates Cloudflare Worker
+/ara enforce ./django-app        → generates Python middleware + settings.py snippet
+/ara enforce ./laravel-app       → generates PHP middleware + Kernel.php registration
+/ara enforce https://yoursite.com → detects stack from live site, generates all applicable configs
+```
+
+### Why this creates adoption pressure for the standard
+
+When 10,000 sites redirect `GPTBot` to ARA digests instead of HTML, OpenAI sees:
+- 300x cheaper crawl cost for ARA-ready sites
+- More accurate indexing (structured data vs HTML scraping)
+- A clear financial incentive to check `/.well-known/ara/manifest.json` natively
+
+**Your enforcement of ARA today is the lobby for ARA becoming a web standard tomorrow.**
+
+See [`middleware/README.md`](middleware/README.md) for the full technical explanation and verification commands.
+
+---
+
 ## Architecture
 
-Two specialized agents, one skill:
+Three specialized agents, one skill:
 
 ```
 /ara <command>
     │
-    ├─ ara-auditor       Read-only. Scores compliance. Detects llms.txt.
+    ├─ ara-auditor       Read-only. Scores compliance (A-F). Detects llms.txt.
     │                    Never writes files.
     │
-    └─ ara-transformer   Generates ARA files. 7-phase pipeline:
-                         1. Intelligence gathering (fetch + crawl)
-                         2. llms.txt migration (if present)
-                         3. manifest.json (Layer 1)
-                         4. schemas/ (Layer 2 + Schema.org)
-                         5. actions.json (Layer 3 + intent mapping)
-                         6. digest.md (GEO optimization)
-                         7. Validation (npx ara-validate)
+    ├─ ara-transformer   Generates ARA files. 7-phase pipeline:
+    │                    1. Intelligence gathering (fetch + crawl)
+    │                    2. llms.txt migration (if present)
+    │                    3. manifest.json (Layer 1)
+    │                    4. schemas/ (Layer 2 + Schema.org)
+    │                    5. actions.json (Layer 3 + intent mapping)
+    │                    6. digest.md (GEO optimization)
+    │                    7. Validation (npx ara-validate)
+    │
+    └─ ara-enforcer      Forces AI bots to use ARA. 7-phase pipeline:
+                         1. Verify ARA files exist
+                         2. Detect tech stack
+                         3. Generate middleware (Next.js/WP/nginx/Apache/CF/Django/Laravel)
+                         4. Update robots.txt
+                         5. Inject HTML <head> hints
+                         6. Inject JSON-LD reference
+                         7. Verify signals with curl simulations
 ```
 
-The auditor always runs before the transformer in `/ara transform` to avoid regenerating files that already exist and to detect the current ARA level.
+The recommended full workflow:
+```
+/ara transform <url>  →  generates ARA files
+/ara enforce <url>    →  forces AI bots to use them
+/ara audit <url>      →  verifies everything is working
+```
 
 ---
 

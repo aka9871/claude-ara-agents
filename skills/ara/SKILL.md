@@ -2,13 +2,15 @@
 name: ara
 description: >
   ARA (Agent-Ready Architecture) skill. Makes any website AI-agent-ready by
-  generating ARA files (manifest.json, schemas/, actions.json, digest.md).
-  Orchestrates ara-auditor and ara-transformer agents. Replaces llms.txt with
-  a structured ARA implementation. Improves GEO (Generative Engine Optimization)
-  through semantic schemas and an AI-optimized digest.md. Use when user says
+  generating ARA files (manifest.json, schemas/, actions.json, digest.md) and
+  forcing known AI bots (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, etc.)
+  to use ARA content via server-level content negotiation. Orchestrates
+  ara-auditor, ara-transformer, and ara-enforcer agents. Replaces llms.txt.
+  Improves GEO (Generative Engine Optimization) through semantic schemas,
+  AI-optimized digest.md, and HTTP-level signal injection. Use when user says
   "ara", "agent-ready", "ARA compliance", "ARA manifest", "migrate llms.txt",
-  "GEO optimize", "agent-readable", "AI-ready website", or provides a URL for
-  ARA work.
+  "GEO optimize", "force AI bots", "enforce ARA", "AI-ready website",
+  "content negotiation", or provides a URL for ARA work.
 allowed-tools: Read, Bash, WebFetch, Glob, Grep, Write
 ---
 
@@ -29,11 +31,19 @@ It replaces `llms.txt` with a structured 3-layer architecture.
 |---------|-------------|-------------|
 | `/ara audit <url>` | Score A-F, detect gaps, find llms.txt | ara-auditor |
 | `/ara transform <url>` | Generate all ARA files | ara-auditor → ara-transformer |
+| `/ara enforce <url>` | Force AI bots to use ARA via server signals | ara-enforcer |
 | `/ara migrate <url>` | Convert existing llms.txt to ARA | ara-auditor → ara-transformer |
 | `/ara validate <url>` | Run npx ara-validate, return score | Bash only |
 | `/ara geo <url>` | Optimize digest.md for AI citability | ara-transformer (--geo) |
 | `/ara quick <url>` | 30-second ARA readiness snapshot | ara-auditor |
 | `/ara` | Show this help | — |
+
+**Recommended full workflow:**
+```bash
+/ara transform https://yoursite.com   # 1. Generate ARA files
+/ara enforce https://yoursite.com     # 2. Force AI bots to use them
+/ara audit https://yoursite.com       # 3. Verify everything works
+```
 
 ---
 

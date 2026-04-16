@@ -1,0 +1,50 @@
+# ── ARA Apache .htaccess Configuration ────────────────────────────────────────
+#
+# Add this to your .htaccess file (document root).
+#
+# What it does:
+#   - Adds ARA discovery headers to every HTTP response
+#   - Redirects known AI bots to /.well-known/ara/digest.md
+#   - Ensures /.well-known/ara/ is publicly accessible
+#
+# Requirements:
+#   - mod_rewrite enabled
+#   - mod_headers enabled
+#   - AllowOverride All in your Apache config
+
+Options -Indexes
+RewriteEngine On
+
+# ── ARA discovery headers ─────────────────────────────────────────────────────
+# Added to every response so agents can discover the manifest without
+# prior knowledge of the ARA standard.
+<IfModule mod_headers.c>
+    Header always set Link "</.well-known/ara/manifest.json>; rel=\"ara-manifest\", </.well-known/ara/digest.md>; rel=\"ara-digest\""
+    Header always set X-ARA-Manifest "/.well-known/ara/manifest.json"
+    Header always set X-ARA-Version "1.0"
+
+    # Correct MIME type for ARA JSON files
+    <FilesMatch "\.json$">
+        Header set Content-Type "application/json; charset=utf-8"
+    </FilesMatch>
+
+    # Correct MIME type for digest.md
+    <FilesMatch "digest\.md$">
+        Header set Content-Type "text/markdown; charset=utf-8"
+    </FilesMatch>
+</IfModule>
+
+# ── AI bot content negotiation ────────────────────────────────────────────────
+# Redirect known AI crawlers to the ARA digest instead of serving full HTML.
+# The digest provides complete site context in ~300 tokens.
+RewriteCond %{REQUEST_URI} !^/.well-known/ara/
+RewriteCond %{HTTP_USER_AGENT} (GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|anthropic-ai|PerplexityBot|YouBot|Google-Extended|Gemini|Bytespider|FacebookBot|Applebot|cohere-ai|AI2Bot) [NC]
+RewriteRule ^ /.well-known/ara/digest.md [R=302,L]
+
+# ── Ensure /.well-known/ara/ is always accessible ────────────────────────────
+# Some servers block .well-known by default
+<IfModule mod_authz_core.c>
+    <Directory ".well-known">
+        Require all granted
+    </Directory>
+</IfModule>
